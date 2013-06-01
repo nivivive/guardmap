@@ -15,8 +15,12 @@
       <!-- Le styles -->
     <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
     <style>
-      body {
-        padding-top: 40px; /* 60px to make the container go all the way to the bottom of the topbar */
+      /*body {
+        padding-top: 40px;
+      }
+      */
+      #map-canvas {
+        margin-top: 40px;
       }
       #map-canvas img {
         max-width: none !important;
@@ -26,9 +30,21 @@
 
     <script>
     //<![CDATA[
+if(typeof(String.prototype.trim) === "undefined")
+{
+    String.prototype.trim = function() 
+    {
+        return String(this).replace(/^\s+|\s+$/g, '');
+    };
+}
+
 var map;
+var pos;
+var directionsDisplay;
+var directionsService = new google.maps.DirectionsService();
 
 function initialize() {
+  directionsDisplay = new google.maps.DirectionsRenderer();
   var mapOptions = {
     zoom: 15,
     mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -39,13 +55,20 @@ function initialize() {
   // Try HTML5 geolocation
   if(navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
-      var pos = new google.maps.LatLng(position.coords.latitude,
+      pos = new google.maps.LatLng(position.coords.latitude,
                                        position.coords.longitude);
 
-      var infowindow = new google.maps.Marker({
-        map: map,
-        position: pos
+      var myloc = new google.maps.Marker({
+        clickable: false,
+        icon: new google.maps.MarkerImage('//maps.gstatic.com/mapfiles/mobile/mobileimgs2.png',
+                                                    new google.maps.Size(22,22),
+                                                    new google.maps.Point(0,18),
+                                                    new google.maps.Point(11,11)),
+        shadow: null,
+        zIndex: 999,
+        map: map
       });
+      myloc.setPosition(pos);
 
       map.setCenter(pos);
     }, function() {
@@ -55,6 +78,7 @@ function initialize() {
     // Browser doesn't support Geolocation
     handleNoGeolocation(false);
   }
+  directionsDisplay.setMap(map);
 }
 
 function handleNoGeolocation(errorFlag) {
@@ -72,6 +96,34 @@ function handleNoGeolocation(errorFlag) {
 
   var infowindow = new google.maps.InfoWindow(options);
   map.setCenter(options.position);
+}
+
+function calcRoute() {
+  var e = document.getElementById("mode");
+  var mode = e.options[e.selectedIndex].value;
+  if (mode === 'driving')
+    mode = google.maps.DirectionsTravelMode.DRIVING;
+  else
+    mode = google.maps.DirectionsTravelMode.WALKING;
+  var origin = document.getElementById('origin').value;
+  var reduced_orig = origin.trim().toLowerCase();
+  if (reduced_orig === 'my location' || reduced_orig === 'here' || reduced_orig === '') // hacky parsing
+    origin = pos;
+  var destination = document.getElementById('destination').value;
+  var request = {
+    origin: origin,
+    destination: destination,
+    travelMode: mode 
+  };
+
+  directionsService.route(request, function(response, status) {
+    if (status == google.maps.DirectionsStatus.OK) {
+      directionsDisplay.setDirections(response);
+    } else {
+      console.log(status);
+    }
+  });
+
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -92,10 +144,15 @@ google.maps.event.addDomListener(window, 'load', initialize);
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-              <form class="navbar-search pull-right">
-                <input type="text" class="search-query" placeholder="Search">
+              <li><a href="#api">API</a></li>
+              <form class="navbar-form pull-right" data-remote="true" onsubmit="return false">
+                <input type="text" class="span2" placeholder="Here" id="origin" style="width: 300px;">
+                <input type="text" class="span2" placeholder="Destination" id="destination" style="width: 300px;">
+                <select style="width: 100px;" id="mode">
+                  <option value="walking" selected="selected">Walking</option>
+                  <option value="driving">Driving</option>
+                </select>
+                <button type="submit" class="btn" id="submit" onclick="calcRoute();">Submit</button>
               </form>
             </ul>
           </div><!--/.nav-collapse -->
