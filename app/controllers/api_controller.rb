@@ -6,10 +6,10 @@ class ApiController < ApplicationController
     @ft = GData::Client::FusionTables.new
     @ft.clientlogin(ENV['G_USER'], ENV['G_PASS'])
     @ft.set_api_key(ENV['FUSION_API_KEY'])
-    data = [{"time"     => params[:time],
-             "lat"      => params[:lat],
-             "long"     => params[:long],
-             "severity" => params[:severity]}]
+    data = [{"time_created"  => params[:time_created],
+             "lat"           => params[:lat],
+             "long"          => params[:long],
+             "severity"      => params[:severity]}]
     # Find table somehow?
     # @success = table.insert data
 	end
