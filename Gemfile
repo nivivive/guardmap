@@ -23,6 +23,8 @@ end
 
 gem 'jquery-rails'
 gem 'rabl'
+gem 'gdata_19'
+gem 'fusion_tables'
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
