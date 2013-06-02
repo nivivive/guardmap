@@ -27,6 +27,45 @@
       #map-canvas img {
         max-width: none !important;
       }
+
+      #originInput {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        -webkit-transition: none;
+        -moz-transition: none;
+        -o-transition: none;
+        transition: none;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        height: 40px;
+        width: 400px;
+        margin-bottom: 0px;
+      }
+
+      #destinationInput {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        -webkit-transition: none;
+        -moz-transition: none;
+        -o-transition: none;
+        transition: none;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+        height: 40px;
+        width: 400px;
+      }
     </style>
     <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
@@ -40,11 +79,89 @@ if(typeof(String.prototype.trim) === "undefined")
     };
 }
 
+google.maps.visualRefresh = true;
+
 var heatmap;
 var map;
 var pos;
 var directionDisplays;
 var directionsService = new google.maps.DirectionsService();
+
+function SearchForm(controlDiv, map) {
+
+    var control = this;
+    control.isOpen = true;
+
+    // controlDiv.style.boxShadow = 'rgba(0, 0, 0, 0.4) 0px 1px 3px';
+    // controlDiv.style.borderRadius = '3px'
+
+    var box = document.createElement('div');
+    box.id = 'sliderbox';
+    box.style.height = '80px';
+    box.style.width = '400px';
+    box.style.backgroundColor = 'white';
+    box.style.boxShadow = 'rgba(0, 0, 0, 0.4) 0px 1px 3px';
+    box.style.borderRadius = '2px';
+    box.style.marginRight = '50px';
+    box.style.marginTop = '30px';
+    controlDiv.appendChild(box);
+
+    var form = document.createElement('form');
+    form.id = 'direction_form'
+    form.target = "#";
+    form.submit = function() { return false; }
+    box.appendChild(form);
+
+    var originInput = document.createElement('input');
+    originInput.id = 'originInput';
+    originInput.type = 'text';
+    form.appendChild(originInput);
+
+    var destinationInput = document.createElement('input');
+    destinationInput.id = 'destinationInput';
+    destinationInput.type = 'text';
+    form.appendChild(destinationInput);
+
+    var searchBtn = document.createElement('button');
+    searchBtn.id = 'searchBtn';
+    searchBtn.type = 'submit';
+    searchBtn.onclick = function () { calcRoute(); }
+    form.appendChild(searchBtn);
+
+    var searchIcon = document.createElement('i');
+    searchIcon.class = 'icon-search';
+    searchBtn.appendChild(searchIcon);
+
+    $.ready ( function() {
+      $('#direction_form').attr('data-remote', 'true');
+    });
+
+    // var toggleBtn = document.createElement('input');
+    // toggleBtn.id = 'toggleBtn';
+    // toggleBtn.type = 'button';
+    // toggleBtn.value = 'Close';
+    // box.appendChild(toggleBtn);
+
+    // $('#toggleBtn').live('click', function() {
+    //     if (control.isOpen) {
+    //         $("#sliderbox").animate({
+    //             "marginRight": "-=150px"
+    //         }, {
+    //             duration: 500,
+    //         });
+    //         control.isOpen = false;
+    //         toggleBtn.value = 'Open';
+    //     } else {
+    //         $("#sliderbox").animate({
+    //             "marginRight": "+=150px"
+    //         }, {
+    //             duration: 500,
+    //         });
+    //         control.isOpen = true;
+    //         toggleBtn.value = 'Close';
+    //     };
+    // });
+}
 
 function initialize() {
   directionDisplays = [];
@@ -54,6 +171,13 @@ function initialize() {
   };
   map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
+
+  // Trying new search box overlayed onto Google map.
+  var searchFormDiv = document.createElement('div');
+  var searchFormControl = new SearchForm(searchFormDiv, map);
+
+  searchFormDiv.index = -500;
+  map.controls[google.maps.ControlPosition.RIGHT_TOP].push(searchFormDiv);
 
   // Try HTML5 geolocation
   if(navigator.geolocation) {
@@ -110,63 +234,6 @@ function initialize() {
       where: "severity <= 3"
     }
     ]
-    /*
-    styles: [
-    {
-      markerOptions: {
-        iconName: 'measle_white'
-      },
-      where: "Type='Other'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_red'
-      },
-      where: "Type='Shooting'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_yellow'
-      },
-      where: "Type='Arson'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_green'
-      },
-      where: "Type='Arrest'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_blue'
-      },
-      where: "Type='Assault'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_purple'
-      },
-      where: "Type='Burglary'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_brown'
-      },
-      where: "Type='Vandalism'"
-    },
-    {
-      markerOptions: {
-        iconName: 'small_grey'
-      },
-      where: "Type='Theft'"
-    },
-    {
-      markerOptions: {
-        iconName: 'measle_turquoise'
-      },
-      where: "Type='Robbery'"
-    }
-    ]*/
   });
   var gradient = [
     'rgba(0, 255, 255, 0)',
