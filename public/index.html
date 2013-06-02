@@ -64,12 +64,9 @@
         height: 40px;
         width: 400px;
       }
-
-      #searchBtn {
-
-      }
     </style>
     <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery.js"></script>
 
     <script>
     //<![CDATA[
@@ -111,28 +108,35 @@ function SearchForm(controlDiv, map) {
     var form = document.createElement('form');
     form.id = 'direction_form'
     form.target = "#";
-    form.submit = function() { return false; }
     box.appendChild(form);
 
     var originInput = document.createElement('input');
     originInput.id = 'originInput';
     originInput.type = 'text';
+    originInput.placeholder = 'Here';
     form.appendChild(originInput);
 
     var destinationInput = document.createElement('input');
     destinationInput.id = 'destinationInput';
     destinationInput.type = 'text';
+    destinationInput.placeholder = 'Destination';
     form.appendChild(destinationInput);
 
     var searchBtn = document.createElement('button');
     searchBtn.id = 'searchBtn';
     searchBtn.type = 'submit';
+    searchBtn.marginRight = -9000;
     searchBtn.onclick = function () { calcRoute(); }
     form.appendChild(searchBtn);
 
     var searchIcon = document.createElement('i');
     searchIcon.class = 'icon-search';
     searchBtn.appendChild(searchIcon);
+
+    $(form).submit (function () {
+      return false;
+    });
+    setTimeout(function() { $('#direction_form').attr('data-remote', 'true'); }, 1000);
 
     // var toggleBtn = document.createElement('input');
     // toggleBtn.id = 'toggleBtn';
@@ -212,7 +216,7 @@ function initialize() {
       from: '1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ'
     },
     heatmap: {
-      enabled: true
+      enabled: false
     },
     styles: [
     {
@@ -279,17 +283,12 @@ function handleNoGeolocation(errorFlag) {
 }
 
 function calcRoute() {
-  var e = document.getElementById("mode");
-  var mode = e.options[e.selectedIndex].value;
-  if (mode === 'driving')
-    mode = google.maps.DirectionsTravelMode.DRIVING;
-  else
-    mode = google.maps.DirectionsTravelMode.WALKING;
-  var origin = document.getElementById('origin').value;
+  var mode = google.maps.DirectionsTravelMode.WALKING;
+  var origin = document.getElementById('originInput').value;
   var reduced_orig = origin.trim().toLowerCase();
   if (reduced_orig === 'my location' || reduced_orig === 'here' || reduced_orig === '') // hacky parsing
     origin = pos; // set origin to user's location
-  var destination = document.getElementById('destination').value;
+  var destination = document.getElementById('destinationInput').value;
   var request = {
     origin: origin,
     destination: destination,
@@ -310,10 +309,6 @@ function calcRoute() {
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
-$.ready ( function() {
-  $('#direction_form').attr('data-remote', 'true');
-});
-
 // ]]>
     </script>
   </head>
@@ -331,22 +326,12 @@ $.ready ( function() {
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
               <li><a href="#api">API</a></li>
-              <form class="navbar-form pull-right" data-remote="true" onsubmit="return false">
-                <input type="text" class="span2" placeholder="Here" id="origin" style="width: 300px;">
-                <input type="text" class="span2" placeholder="Destination" id="destination" style="width: 300px;">
-                <select style="width: 100px;" id="mode">
-                  <option value="walking" selected="selected">Walking</option>
-                  <option value="driving">Driving</option>
-                </select>
-                <button type="submit" class="btn" id="submit" onclick="calcRoute();">Submit</button>
-              </form>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
       </div>
     </div>
     <div id="map-canvas"></div>
-    <script src="http://code.jquery.com/jquery.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
   </body>
 </html>
