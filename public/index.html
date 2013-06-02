@@ -38,6 +38,7 @@ if(typeof(String.prototype.trim) === "undefined")
     };
 }
 
+var heatmap;
 var map;
 var pos;
 var directionsDisplay;
@@ -84,11 +85,32 @@ function initialize() {
     // https://www.googleapis.com/fusiontables/v1/query?sql=SELECT%20*%20FROM%201uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w&key=AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8
     query: {
       select: '*',
-      from: '1uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w'
+      from: '1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'
     },
     heatmap: {
       enabled: false
     },
+    styles: [
+    {
+      markerOptions: {
+        iconName: 'small_red'
+      },
+      where: "Severity >= 7"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_yellow'
+      },
+      where: "Severity < 7 AND Severity > 3"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_green'
+      },
+      where: "Severity <= 3"
+    }
+    ]
+    /*
     styles: [
     {
       markerOptions: {
@@ -144,9 +166,30 @@ function initialize() {
       },
       where: "Type='Robbery'"
     }
-    ]
+    ]*/
   });
-
+  var gradient = [
+    'rgba(0, 255, 255, 0)',
+    'rgba(0, 255, 255, 1)',
+    'rgba(0, 191, 255, 1)',
+    'rgba(0, 127, 255, 1)',
+    'rgba(0, 63, 255, 1)',
+    'rgba(0, 0, 255, 1)',
+    'rgba(0, 0, 223, 1)',
+    'rgba(0, 0, 191, 1)',
+    'rgba(0, 0, 159, 1)',
+    'rgba(0, 0, 127, 1)',
+    'rgba(63, 0, 91, 1)',
+    'rgba(127, 0, 63, 1)',
+    'rgba(191, 0, 31, 1)',
+    'rgba(255, 0, 0, 1)'
+  ]
+  heatmap = layer;
+  layer.setOptions({
+    gradient: gradient,
+    radius: 20,
+    opacity: 0.2
+  });
   layer.setMap(map);
   console.log(layer);
 }
@@ -183,12 +226,14 @@ function calcRoute() {
   var request = {
     origin: origin,
     destination: destination,
-    travelMode: mode 
+    travelMode: mode,
+    provideRouteAlternatives: true
   };
 
   directionsService.route(request, function(response, status) {
     if (status == google.maps.DirectionsStatus.OK) {
       directionsDisplay.setDirections(response);
+      console.log(response);
     } else {
       console.log(status);
     }
