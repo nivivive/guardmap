@@ -79,6 +79,76 @@ function initialize() {
     handleNoGeolocation(false);
   }
   directionsDisplay.setMap(map);
+
+  var layer = new google.maps.FusionTablesLayer({
+    // https://www.googleapis.com/fusiontables/v1/query?sql=SELECT%20*%20FROM%201uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w&key=AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8
+    query: {
+      select: '*',
+      from: '1uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w'
+    },
+    heatmap: {
+      enabled: false
+    },
+    styles: [
+    {
+      markerOptions: {
+        iconName: 'measle_white'
+      },
+      where: "Type='Other'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_red'
+      },
+      where: "Type='Shooting'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_yellow'
+      },
+      where: "Type='Arson'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_green'
+      },
+      where: "Type='Arrest'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_blue'
+      },
+      where: "Type='Assault'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_purple'
+      },
+      where: "Type='Burglary'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_brown'
+      },
+      where: "Type='Vandalism'"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_grey'
+      },
+      where: "Type='Theft'"
+    },
+    {
+      markerOptions: {
+        iconName: 'measle_turquoise'
+      },
+      where: "Type='Robbery'"
+    }
+    ]
+  });
+
+  layer.setMap(map);
+  console.log(layer);
 }
 
 function handleNoGeolocation(errorFlag) {
@@ -108,7 +178,7 @@ function calcRoute() {
   var origin = document.getElementById('origin').value;
   var reduced_orig = origin.trim().toLowerCase();
   if (reduced_orig === 'my location' || reduced_orig === 'here' || reduced_orig === '') // hacky parsing
-    origin = pos;
+    origin = pos; // set origin to user's location
   var destination = document.getElementById('destination').value;
   var request = {
     origin: origin,
