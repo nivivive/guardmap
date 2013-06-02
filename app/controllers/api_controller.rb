@@ -18,7 +18,7 @@ class ApiController < ApplicationController
                "severity"      => params[:severity]}]
       # Find table somehow?
       tables = @ft.show_tables.select{ |table| table.id == '1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'}
-      @success = table.first.insert data
+      @success = tables.first.insert data
     end
 	end
 end

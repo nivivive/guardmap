@@ -130,6 +130,10 @@ function SearchForm(controlDiv, map) {
     searchIcon.class = 'icon-search';
     searchBtn.appendChild(searchIcon);
 
+    $.ready ( function() {
+      $('#direction_form').attr('data-remote', 'true');
+    });
+
     // var toggleBtn = document.createElement('input');
     // toggleBtn.id = 'toggleBtn';
     // toggleBtn.type = 'button';
@@ -208,7 +212,7 @@ function initialize() {
       from: '1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'
     },
     heatmap: {
-      enabled: false
+      enabled: true
     },
     styles: [
     {
