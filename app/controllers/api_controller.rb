@@ -21,4 +21,6 @@ class ApiController < ApplicationController
       @success = tables.first.insert data
     end
 	end
+
+    #adding more api
 end
