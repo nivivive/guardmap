@@ -64,6 +64,10 @@
         height: 40px;
         width: 400px;
       }
+
+      #searchBtn {
+
+      }
     </style>
     <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
@@ -129,10 +133,6 @@ function SearchForm(controlDiv, map) {
     var searchIcon = document.createElement('i');
     searchIcon.class = 'icon-search';
     searchBtn.appendChild(searchIcon);
-
-    $.ready ( function() {
-      $('#direction_form').attr('data-remote', 'true');
-    });
 
     // var toggleBtn = document.createElement('input');
     // toggleBtn.id = 'toggleBtn';
@@ -209,7 +209,7 @@ function initialize() {
     // https://www.googleapis.com/fusiontables/v1/query?sql=SELECT%20*%20FROM%201uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w&key=AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8
     query: {
       select: '*',
-      from: '1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'
+      from: '1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ'
     },
     heatmap: {
       enabled: true
@@ -219,19 +219,19 @@ function initialize() {
       markerOptions: {
         iconName: 'small_red'
       },
-      where: "Severity >= 7"
+      where: "severity >= 7"
     },
     {
       markerOptions: {
         iconName: 'small_yellow'
       },
-      where: "Severity < 7 AND Severity > 3"
+      where: "severity < 7 AND severity > 3"
     },
     {
       markerOptions: {
         iconName: 'small_green'
       },
-      where: "Severity <= 3"
+      where: "severity <= 3"
     }
     ]
   });
@@ -309,6 +309,10 @@ function calcRoute() {
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
+
+$.ready ( function() {
+  $('#direction_form').attr('data-remote', 'true');
+});
 
 // ]]>
     </script>

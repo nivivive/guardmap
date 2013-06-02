@@ -17,7 +17,7 @@ class ApiController < ApplicationController
                "long"          => params[:long],
                "severity"      => params[:severity]}]
       # Find table somehow?
-      tables = @ft.show_tables.select{ |table| table.id == '1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'}
+      tables = @ft.show_tables.select{ |table| table.id == '1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ'}
       @success = tables.first.insert data
     end
 	end
