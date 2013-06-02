@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>guardmap</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <!--
+    Include the maps javascript with sensor=true because this code is using a
+    sensor (a GPS locator) to determine the user's location.
+    See: https://developers.google.com/apis/maps/documentation/javascript/basics#SpecifyingSensor
+    -->
+    <link rel="stylesheet" href="https://developers.google.com/maps/documentation/javascript/examples/default.css">
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=true"></script>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+
+      <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style>
+      /*body {
+        padding-top: 40px;
+      }
+      */
+      #map-canvas {
+        margin-top: 40px;
+      }
+      #map-canvas img {
+        max-width: none !important;
+      }
+
+      #originInput {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        -webkit-transition: none;
+        -moz-transition: none;
+        -o-transition: none;
+        transition: none;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        height: 40px;
+        width: 400px;
+        margin-bottom: 0px;
+      }
+
+      #destinationInput {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        -webkit-transition: none;
+        -moz-transition: none;
+        -o-transition: none;
+        transition: none;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+        height: 40px;
+        width: 400px;
+      }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery.js"></script>
+
+    <script>
+    //<![CDATA[
+if(typeof(String.prototype.trim) === "undefined")
+{
+    String.prototype.trim = function() 
+    {
+        return String(this).replace(/^\s+|\s+$/g, '');
+    };
+}
+
+google.maps.visualRefresh = true;
+
+var heatmap;
+var map;
+var pos;
+var directionDisplays;
+var directionsService = new google.maps.DirectionsService();
+
+function SearchForm(controlDiv, map) {
+
+    var control = this;
+    control.isOpen = true;
+
+    // controlDiv.style.boxShadow = 'rgba(0, 0, 0, 0.4) 0px 1px 3px';
+    // controlDiv.style.borderRadius = '3px'
+
+    var box = document.createElement('div');
+    box.id = 'sliderbox';
+    box.style.height = '80px';
+    box.style.width = '400px';
+    box.style.backgroundColor = 'white';
+    box.style.boxShadow = 'rgba(0, 0, 0, 0.4) 0px 1px 3px';
+    box.style.borderRadius = '2px';
+    box.style.marginRight = '50px';
+    box.style.marginTop = '30px';
+    controlDiv.appendChild(box);
+
+    var form = document.createElement('form');
+    form.id = 'direction_form'
+    form.target = "#";
+    box.appendChild(form);
+
+    var originInput = document.createElement('input');
+    originInput.id = 'originInput';
+    originInput.type = 'text';
+    originInput.placeholder = 'Here';
+    form.appendChild(originInput);
+
+    var destinationInput = document.createElement('input');
+    destinationInput.id = 'destinationInput';
+    destinationInput.type = 'text';
+    destinationInput.placeholder = 'Destination';
+    form.appendChild(destinationInput);
+
+    var searchBtn = document.createElement('button');
+    searchBtn.id = 'searchBtn';
+    searchBtn.type = 'submit';
+    searchBtn.marginRight = -9000;
+    searchBtn.onclick = function () { calcRoute(); }
+    form.appendChild(searchBtn);
+
+    var searchIcon = document.createElement('i');
+    searchIcon.class = 'icon-search';
+    searchBtn.appendChild(searchIcon);
+
+    $(form).submit (function () {
+      return false;
+    });
+    setTimeout(function() { $('#direction_form').attr('data-remote', 'true'); }, 1000);
+
+    // var toggleBtn = document.createElement('input');
+    // toggleBtn.id = 'toggleBtn';
+    // toggleBtn.type = 'button';
+    // toggleBtn.value = 'Close';
+    // box.appendChild(toggleBtn);
+
+    // $('#toggleBtn').live('click', function() {
+    //     if (control.isOpen) {
+    //         $("#sliderbox").animate({
+    //             "marginRight": "-=150px"
+    //         }, {
+    //             duration: 500,
+    //         });
+    //         control.isOpen = false;
+    //         toggleBtn.value = 'Open';
+    //     } else {
+    //         $("#sliderbox").animate({
+    //             "marginRight": "+=150px"
+    //         }, {
+    //             duration: 500,
+    //         });
+    //         control.isOpen = true;
+    //         toggleBtn.value = 'Close';
+    //     };
+    // });
+}
+
+function initialize() {
+  directionDisplays = [];
+  var mapOptions = {
+    zoom: 15,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+  // Trying new search box overlayed onto Google map.
+  var searchFormDiv = document.createElement('div');
+  var searchFormControl = new SearchForm(searchFormDiv, map);
+
+  searchFormDiv.index = -500;
+  map.controls[google.maps.ControlPosition.RIGHT_TOP].push(searchFormDiv);
+
+  // Try HTML5 geolocation
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      pos = new google.maps.LatLng(position.coords.latitude,
+                                       position.coords.longitude);
+
+      var myloc = new google.maps.Marker({
+        clickable: false,
+        icon: new google.maps.MarkerImage('//maps.gstatic.com/mapfiles/mobile/mobileimgs2.png',
+                                                    new google.maps.Size(22,22),
+                                                    new google.maps.Point(0,18),
+                                                    new google.maps.Point(11,11)),
+        shadow: null,
+        zIndex: 999,
+        map: map
+      });
+      myloc.setPosition(pos);
+
+      map.setCenter(pos);
+    }, function() {
+      handleNoGeolocation(true);
+    });
+  } else {
+    // Browser doesn't support Geolocation
+    handleNoGeolocation(false);
+  }
+
+  var layer = new google.maps.FusionTablesLayer({
+    query: {
+      select: '*',
+      from: '1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ'
+    },
+    heatmap: {
+      enabled: false
+    },
+    styles: [
+    {
+      markerOptions: {
+        iconName: 'small_red'
+      },
+      where: "severity >= 7"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_yellow'
+      },
+      where: "severity < 7 AND severity > 3"
+    },
+    {
+      markerOptions: {
+        iconName: 'small_green'
+      },
+      where: "severity <= 3"
+    }
+    ]
+  });
+  var gradient = [
+    'rgba(0, 255, 255, 0)',
+    'rgba(0, 255, 255, 1)',
+    'rgba(0, 191, 255, 1)',
+    'rgba(0, 127, 255, 1)',
+    'rgba(0, 63, 255, 1)',
+    'rgba(0, 0, 255, 1)',
+    'rgba(0, 0, 223, 1)',
+    'rgba(0, 0, 191, 1)',
+    'rgba(0, 0, 159, 1)',
+    'rgba(0, 0, 127, 1)',
+    'rgba(63, 0, 91, 1)',
+    'rgba(127, 0, 63, 1)',
+    'rgba(191, 0, 31, 1)',
+    'rgba(255, 0, 0, 1)'
+  ]
+  heatmap = layer;
+  layer.setOptions({
+    gradient: gradient,
+    radius: 20,
+    opacity: 0.2
+  });
+  layer.setMap(map);
+  console.log(layer);
+}
+
+function handleNoGeolocation(errorFlag) {
+  if (errorFlag) {
+    var content = 'Error: The Geolocation service failed.';
+  } else {
+    var content = 'Error: Your browser doesn\'t support geolocation.';
+  }
+
+  var options = {
+    map: map,
+    position: new google.maps.LatLng(60, 105),
+    content: content
+  };
+
+  var infowindow = new google.maps.InfoWindow(options);
+  map.setCenter(options.position);
+}
+
+function calcRoute() {
+  var mode = google.maps.DirectionsTravelMode.WALKING;
+  var origin = document.getElementById('originInput').value;
+  var reduced_orig = origin.trim().toLowerCase();
+  if (reduced_orig === 'my location' || reduced_orig === 'here' || reduced_orig === '') // hacky parsing
+    origin = pos; // set origin to user's location
+  var destination = document.getElementById('destinationInput').value;
+  var request = {
+    origin: origin,
+    destination: destination,
+    travelMode: mode,
+    provideRouteAlternatives: true
+  };
+
+  directionsService.route(request, function(response, status) {
+    if (status == google.maps.DirectionsStatus.OK) {
+      // clear old directions
+      for (var i = 0; i < directionDisplays.length; i++) {
+        directionDisplays[i].setMap(null);
+      }
+      directionDisplays = [];
+      for (var i = 0; i < response.routes.length; i++) {
+        console.log(response.routes[i]);
+        getDataPts(response.routes[i]);
+        var directionsDisp = new google.maps.DirectionsRenderer();
+        directionsDisp.setDirections(response);
+        directionsDisp.setRouteIndex(i);
+        directionsDisp.setMap(map);
+        directionsDisp.addListener('click', function() {
+          console.log('hi');
+          directionsDisp.setOptions({
+            polylineOptions: {
+              strokeOpacity: 1.0
+            }
+          });
+        });
+        directionDisplays.push(directionsDisp);
+      }
+      console.log(response);
+    } else {
+      console.log(status);
+    }
+  });
+}
+
+function distance(route_pt, data_pt) {
+  return 0;
+}
+
+function getRoutePts(route) {
+  var route_pts = route.overview_path;
+}
+
+function getDataPts(route) {
+  // https://www.googleapis.com/fusiontables/v1/query?sql=SELECT%20*%20FROM%201uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w&key=AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8
+  var bounds = route.bounds;
+  var ne = bounds.getNorthEast().toUrlValue();
+  var sw = bounds.getSouthWest().toUrlValue();
+  var bound_str = "RECTANGLE(LATLNG(" + ne + "), LATLNG(" + sw + "))";
+  var query = "SELECT * FROM 1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ WHERE ST_INTERSECTS(Latitude, " + bound_str + ")";
+  query = encodeURIComponent(query);
+  var url = "https://www.google.apis.com/fusiontables/v1/query";
+  var q = $.ajax({
+    url: url + '?callback=?',
+    dataType: "jsonp",
+    data: {
+      key: "AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8",
+      sql: query
+    },
+    crossDomain: true,
+    success: function(json) {
+      console.log(json);
+    }
+  }
+    );
+  var q = $.getJSON(url + '&callback=', function() {
+    console.log('A');
+  });
+  q.done(function(json) {
+    console.log(json);
+    console.log('hi');
+  });
+  q.always(function() {
+    console.log('hahah');
+  });
+  q.fail(function(jqxhr, textStatus, error) {
+    var err = textStatus + ', ' + error;
+    console.log("Request Failed: " + err);
+  });
+  console.log(q);
+}
+
+function heuristic(route_pts, data_pts, r) {
+  var sum = 0;
+  var nearbyPts = {};
+  for (var i = 0; i < route_pts.length; i++) {
+    for (var j = 0; j < data_pts.length; j++) {
+      if (distance(route_pts[i], data_pts[j]) < r) {
+        nearbyPts[data_pts[j]] = true;
+      }
+    }
+  }
+  for (var x in nearbyPts) {
+    if (nearbyPts.hasOwnProperty(x)) {
+      //sum += x.severity;
+    }
+  }
+  if (data_pts.length == 0)
+    return 0;
+  return (1.0 / data_pts.length) * sum;
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+// ]]>
+    </script>
+  </head>
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Guardmap</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="api.html">API</a></li>
+              <form class="navbar-form pull-right" data-remote="true" onsubmit="return false">
+                <input type="text" class="span2" placeholder="Here" id="origin" style="width: 300px;">
+                <input type="text" class="span2" placeholder="Destination" id="destination" style="width: 300px;">
+                <select style="width: 100px;" id="mode">
+                  <option value="walking" selected="selected">Walking</option>
+                  <option value="driving">Driving</option>
+                </select>
+                <button type="submit" class="btn" id="submit" onclick="calcRoute();">Submit</button>
+              </form>
+>>>>>>> Stashed changes
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+    <div id="map-canvas"></div>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

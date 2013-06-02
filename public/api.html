@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>guardmap</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <!--
+    Include the maps javascript with sensor=true because this code is using a
+    sensor (a GPS locator) to determine the user's location.
+    See: https://developers.google.com/apis/maps/documentation/javascript/basics#SpecifyingSensor
+    -->
+    <link rel="stylesheet" href="https://developers.google.com/maps/documentation/javascript/examples/default.css">
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=true"></script>
+
+      <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style>
+      /*body {
+        padding-top: 40px;
+      }
+      */
+      #map-canvas {
+        margin-top: 40px;
+      }
+      #map-canvas img {
+        max-width: none !important;
+      }
+
+      #originInput {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        -webkit-transition: none;
+        -moz-transition: none;
+        -o-transition: none;
+        transition: none;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        height: 40px;
+        width: 400px;
+        margin-bottom: 0px;
+      }
+
+      #destinationInput {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        -webkit-transition: none;
+        -moz-transition: none;
+        -o-transition: none;
+        transition: none;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+        height: 40px;
+        width: 400px;
+      }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <script>
+    //<![CDATA[
+if(typeof(String.prototype.trim) === "undefined")
+{
+    String.prototype.trim = function() 
+    {
+        return String(this).replace(/^\s+|\s+$/g, '');
+    };
+}</script>
+  </head>
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">Guardmap</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="index.html">Home</a></li>
+              <li><a class="active" href="#">API</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+    <div> 
+        <h2> API Documentation <h2>
+        <p class="lead"> Do you want to incorporate GuardMap in your app?</p>
+        <div class="well">
+            <h4> Pushing Live Updates to GuardMap</h4>
+            <p style="font-size:50%;"> HTTP request: POST https://www.guard-map.herokuapp.com/api/push</p>
+            <p style="font-size:50%;"> Required Properties </p>
+            <ul style="font-weight:normal;font-size:50%;">
+                <li> time_created (UTC time, date object) : The time of incident </li>
+                <li> lat : The latitude of incident location </li>
+                <li> long : The longitude of incident location </li>
+                <li> severity : The severity ranking of the incident. See below table for more details </li>
+            </ul>
+            <p style="font-size:50%;"> Severity Rankings </p>
+            <ul style="font-weight:normal;font-size:50%">
+                <li>Shooting 10 </li>
+                <li>Assault 7 </li>
+                    <li>Arson 5 </li>
+                    <li>Burglary 5</li>
+                    <li>Robbery 5</li>
+                    <li>Theft 5 </li>
+                    <li>Vandalism 3 </li>
+                    <li>Other 2 </li>
+                </ul>  
+        </div>
+        <p class="lead"> If you are a government institution or non-profit organization that would like to contribute to this project, then please contact us at guardmap.hackforchange@gmail.com</p> 
+    </div>
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>
