@@ -12,7 +12,7 @@ class ApiController < ApplicationController
         params[:severity].empty?)
       @success = false
     else
-      data = [{"time_created"  => params[:time_created],
+      data = [{"time_created"  => DateTime.strptime(params[:time_created], "%Y-%m-%d %H:%M:%S"),
                "lat"           => params[:lat],
                "long"          => params[:long],
                "severity"      => params[:severity]}]
