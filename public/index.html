@@ -412,7 +412,17 @@ google.maps.event.addDomListener(window, 'load', initialize);
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
-              <li><a href="#api">API</a></li>
+              <li><a href="api.html">API</a></li>
+              <form class="navbar-form pull-right" data-remote="true" onsubmit="return false">
+                <input type="text" class="span2" placeholder="Here" id="origin" style="width: 300px;">
+                <input type="text" class="span2" placeholder="Destination" id="destination" style="width: 300px;">
+                <select style="width: 100px;" id="mode">
+                  <option value="walking" selected="selected">Walking</option>
+                  <option value="driving">Driving</option>
+                </select>
+                <button type="submit" class="btn" id="submit" onclick="calcRoute();">Submit</button>
+              </form>
+>>>>>>> Stashed changes
             </ul>
           </div><!--/.nav-collapse -->
         </div>
