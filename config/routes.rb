@@ -1,5 +1,7 @@
 Guardmap::Application.routes.draw do
 
+  match 'api/push' => 'api#push', :via => [:post]
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
