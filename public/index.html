@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://developers.google.com/maps/documentation/javascript/examples/default.css">
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=true"></script>
 
+    <script src="http://code.jquery.com/jquery.js"></script>
+
       <!-- Le styles -->
     <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
     <style>
@@ -41,11 +43,11 @@ if(typeof(String.prototype.trim) === "undefined")
 var heatmap;
 var map;
 var pos;
-var directionsDisplay;
+var directionDisplays;
 var directionsService = new google.maps.DirectionsService();
 
 function initialize() {
-  directionsDisplay = new google.maps.DirectionsRenderer();
+  directionDisplays = [];
   var mapOptions = {
     zoom: 15,
     mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -79,35 +81,33 @@ function initialize() {
     // Browser doesn't support Geolocation
     handleNoGeolocation(false);
   }
-  directionsDisplay.setMap(map);
 
   var layer = new google.maps.FusionTablesLayer({
-    // https://www.googleapis.com/fusiontables/v1/query?sql=SELECT%20*%20FROM%201uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w&key=AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8
     query: {
       select: '*',
-      from: '1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'
+      from: '1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ' //'1gm-7p4_x7K4SfqRRhmJ8jokqbzi3t02YMY6n6q0'
     },
     heatmap: {
-      enabled: false
+      enabled: true
     },
     styles: [
     {
       markerOptions: {
         iconName: 'small_red'
       },
-      where: "Severity >= 7"
+      where: "severity >= 7"
     },
     {
       markerOptions: {
         iconName: 'small_yellow'
       },
-      where: "Severity < 7 AND Severity > 3"
+      where: "severity < 7 AND severity > 3"
     },
     {
       markerOptions: {
         iconName: 'small_green'
       },
-      where: "Severity <= 3"
+      where: "severity <= 3"
     }
     ]
     /*
@@ -232,13 +232,100 @@ function calcRoute() {
 
   directionsService.route(request, function(response, status) {
     if (status == google.maps.DirectionsStatus.OK) {
-      directionsDisplay.setDirections(response);
+      // clear old directions
+      for (var i = 0; i < directionDisplays.length; i++) {
+        directionDisplays[i].setMap(null);
+      }
+      directionDisplays = [];
+      for (var i = 0; i < response.routes.length; i++) {
+        console.log(response.routes[i]);
+        getDataPts(response.routes[i]);
+        var directionsDisp = new google.maps.DirectionsRenderer();
+        directionsDisp.setDirections(response);
+        directionsDisp.setRouteIndex(i);
+        directionsDisp.setMap(map);
+        directionsDisp.addListener('click', function() {
+          console.log('hi');
+          directionsDisp.setOptions({
+            polylineOptions: {
+              strokeOpacity: 1.0
+            }
+          });
+        });
+        directionDisplays.push(directionsDisp);
+      }
       console.log(response);
     } else {
       console.log(status);
     }
   });
+}
 
+function distance(route_pt, data_pt) {
+  return 0;
+}
+
+function getRoutePts(route) {
+  var route_pts = route.overview_path;
+}
+
+function getDataPts(route) {
+  // https://www.googleapis.com/fusiontables/v1/query?sql=SELECT%20*%20FROM%201uM1IYdJNDhnBceJcdEgTvYH3r_kdpTjLZjL3_7w&key=AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8
+  var bounds = route.bounds;
+  var ne = bounds.getNorthEast().toUrlValue();
+  var sw = bounds.getSouthWest().toUrlValue();
+  var bound_str = "RECTANGLE(LATLNG(" + ne + "), LATLNG(" + sw + "))";
+  var query = "SELECT * FROM 1CDBDXE5rBU5wuFKvtlVtd6H7Wh9kLc0ffT8PKQQ WHERE ST_INTERSECTS(Latitude, " + bound_str + ")";
+  query = encodeURIComponent(query);
+  var url = "https://www.google.apis.com/fusiontables/v1/query";
+  var q = $.ajax({
+    url: url + '?callback=?',
+    dataType: "jsonp",
+    data: {
+      key: "AIzaSyDOUVN7xtf89zi7SyPe5z8QpS-Awsgqnw8",
+      sql: query
+    },
+    crossDomain: true,
+    success: function(json) {
+      console.log(json);
+    }
+  }
+    );
+  var q = $.getJSON(url + '&callback=', function() {
+    console.log('A');
+  });
+  q.done(function(json) {
+    console.log(json);
+    console.log('hi');
+  });
+  q.always(function() {
+    console.log('hahah');
+  });
+  q.fail(function(jqxhr, textStatus, error) {
+    var err = textStatus + ', ' + error;
+    console.log("Request Failed: " + err);
+  });
+  console.log(q);
+}
+
+function heuristic(route_pts, data_pts, r) {
+  var sum = 0;
+  var nearbyPts = {};
+  for (var i = 0; i < route_pts.length; i++) {
+    for (var j = 0; j < data_pts.length; j++) {
+      if (distance(route_pts[i], data_pts[j]) < r) {
+        nearbyPts[data_pts[j]] = true;
+      }
+    }
+  }
+  for (var x in nearbyPts) {
+    if (nearbyPts.hasOwnProperty(x)) {
+      //sum += x.severity;
+    }
+  }
+  if (data_pts.length == 0)
+    return 0;
+  return (1.0 / data_pts.length) * sum;
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -275,7 +362,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
       </div>
     </div>
     <div id="map-canvas"></div>
-    <script src="http://code.jquery.com/jquery.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
   </body>
 </html>
